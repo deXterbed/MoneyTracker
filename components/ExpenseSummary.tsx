@@ -4,32 +4,33 @@ import { Expense } from "../types/expense";
 
 interface ExpenseSummaryProps {
   expenses: Expense[];
+  month: number; // 0-based
+  year: number;
 }
 
-const ExpenseSummary: React.FC<ExpenseSummaryProps> = ({ expenses }) => {
+const ExpenseSummary: React.FC<ExpenseSummaryProps> = ({
+  expenses,
+  month,
+  year,
+}) => {
   const { total, monthName, hasExpenses } = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
     const filtered = expenses.filter((expense) => {
-      const [year, month, day] = expense.date.split("-").map(Number);
-      const expenseDate = new Date(year, month - 1, day);
-      return (
-        expenseDate.getMonth() === currentMonth &&
-        expenseDate.getFullYear() === currentYear
-      );
+      const [y, m] = expense.date.split("-");
+      return parseInt(y) === year && parseInt(m) - 1 === month;
     });
     const total = filtered.reduce(
       (total, expense) => total + parseFloat(expense.amount),
       0
     );
+    const monthName = new Date(year, month).toLocaleString("default", {
+      month: "long",
+    });
     return {
       total,
-      monthName: now.toLocaleString("default", { month: "long" }),
+      monthName,
       hasExpenses: filtered.length > 0,
     };
-  }, [expenses]);
+  }, [expenses, month, year]);
 
   return (
     <View style={styles.container}>

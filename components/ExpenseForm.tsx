@@ -15,6 +15,8 @@ interface ExpenseFormProps {
   editingExpense: Expense | null;
   onCancelEdit: () => void;
   categories: readonly string[];
+  currentMonth: number;
+  currentYear: number;
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({
@@ -23,6 +25,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   editingExpense,
   onCancelEdit,
   categories,
+  currentMonth,
+  currentYear,
 }) => {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -44,7 +48,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
   const getCurrentDateTime = () => {
     const now = new Date();
-    const date = now.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    const year = currentYear;
+    const month = currentMonth + 1;
+    const day = now.getDate();
+    const date = `${year}-${month.toString().padStart(2, "0")}-${day
+      .toString()
+      .padStart(2, "0")}`;
     const time = now.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
