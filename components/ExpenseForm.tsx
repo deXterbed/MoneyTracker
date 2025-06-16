@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ScrollView,
 } from "react-native";
 import { Expense, ValidationErrors, CATEGORIES } from "../types/expense";
 
@@ -34,6 +35,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const [category, setCategory] = useState(categories[0]);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const formRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (editingExpense) {
@@ -41,6 +43,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
       setDescription(editingExpense.description || "");
       setShowDescription(!!editingExpense.description);
       setCategory(editingExpense.category);
+      formRef.current?.scrollTo({ y: 0, animated: true });
     } else {
       setShowDescription(false);
     }
@@ -102,6 +105,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           amount: parseFloat(amount).toString(),
           description: description.trim(),
           category,
+          date: editingExpense.date,
+          time: editingExpense.time,
         });
       } else {
         const { date, time } = getCurrentDateTime();
@@ -129,7 +134,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView ref={formRef} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Money Tracker</Text>
       </View>
@@ -243,7 +248,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
           )}
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -251,6 +256,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#f5f5f5",
     paddingBottom: 10,
+    flex: 1,
   },
   header: {
     padding: 20,

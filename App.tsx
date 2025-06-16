@@ -43,6 +43,7 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [showSummary, setShowSummary] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Month/year state
   const now = new Date();
@@ -110,6 +111,8 @@ export default function App() {
 
   const handleEditExpense = (expense: Expense) => {
     setEditingExpense(expense);
+    // Scroll to form when editing
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
   const handleCancelEdit = () => {
@@ -201,7 +204,10 @@ export default function App() {
           <Animated.View
             style={{ flex: 1, transform: [{ translateX: slideAnim }] }}
           >
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+              ref={scrollViewRef}
+              contentContainerStyle={styles.scrollContent}
+            >
               <ExpenseForm
                 onAddExpense={handleAddExpense}
                 onUpdateExpense={handleUpdateExpense}
