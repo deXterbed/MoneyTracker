@@ -21,6 +21,21 @@ import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
 import ExpenseSummary from "./components/ExpenseSummary";
 import { Expense, CATEGORIES } from "./types/expense";
+import { db } from "./firebaseConfig";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  setDoc,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
+import {
+  syncExpensesWithCloud,
+  addExpenseCloudSynced,
+  updateExpenseCloudSynced,
+  deleteExpenseCloudSynced,
+} from "./storageSync";
 
 const STORAGE_KEY = "expenses";
 
@@ -38,19 +53,17 @@ export default function App() {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const directionRef = useRef(0); // -1 for left, 1 for right
 
-  // Load expenses from AsyncStorage on mount
+  // At app start, sync both storages and set state
   useEffect(() => {
-    const loadExpenses = async () => {
+    const doSync = async () => {
       try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          setExpenses(JSON.parse(stored));
-        }
+        const merged = await syncExpensesWithCloud();
+        setExpenses(merged);
       } catch (e) {
-        console.error("Failed to load expenses", e);
+        console.error("Failed to sync expenses", e);
       }
     };
-    loadExpenses();
+    doSync();
   }, []);
 
   // Save expenses to AsyncStorage whenever they change
@@ -65,20 +78,34 @@ export default function App() {
     saveExpenses();
   }, [expenses]);
 
-  const handleAddExpense = (newExpense: Expense) => {
-    setExpenses([...expenses, newExpense]);
+  // Add expense and sync to Firestore/AsyncStorage
+  const handleAddExpense = async (newExpense: Expense) => {
+    try {
+      const updated = await addExpenseCloudSynced(newExpense);
+      setExpenses(updated);
+    } catch (e) {
+      console.error("Failed to add expense", e);
+    }
   };
 
-  const handleUpdateExpense = (updatedExpense: Expense) => {
-    setExpenses(
-      expenses.map((exp) =>
-        exp.id === updatedExpense.id ? updatedExpense : exp
-      )
-    );
+  // Update expense and sync to Firestore/AsyncStorage
+  const handleUpdateExpense = async (updatedExpense: Expense) => {
+    try {
+      const updated = await updateExpenseCloudSynced(updatedExpense);
+      setExpenses(updated);
+    } catch (e) {
+      console.error("Failed to update expense", e);
+    }
   };
 
-  const handleDeleteExpense = (id: string) => {
-    setExpenses(expenses.filter((expense) => expense.id !== id));
+  // Delete expense and sync to Firestore/AsyncStorage
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      const updated = await deleteExpenseCloudSynced(id);
+      setExpenses(updated);
+    } catch (e) {
+      console.error("Failed to delete expense", e);
+    }
   };
 
   const handleEditExpense = (expense: Expense) => {
