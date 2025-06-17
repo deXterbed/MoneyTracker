@@ -7,6 +7,11 @@ import {
   Text,
   View,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Pressable,
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -135,76 +140,91 @@ export default function App() {
     { month: "long", year: "numeric" }
   );
 
+  const handleBackgroundPress = (event: any) => {
+    // Only dismiss keyboard if the press is on the background
+    if (event.target === event.currentTarget) {
+      Keyboard.dismiss();
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={styles.scrollContent}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
         >
-          <ExpenseForm
-            onAddExpense={handleAddExpense}
-            onUpdateExpense={handleUpdateExpense}
-            editingExpense={editingExpense}
-            onCancelEdit={handleCancelEdit}
-            categories={CATEGORIES}
-            currentMonth={currentMonth}
-            currentYear={currentYear}
-          />
-          <View style={styles.monthHeaderRow}>
-            <TouchableOpacity
-              style={styles.arrowButton}
-              onPress={() => {
-                setCurrentMonth((prev) => {
-                  if (prev === 0) {
-                    setCurrentYear((y) => y - 1);
-                    return 11;
-                  }
-                  return prev - 1;
-                });
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.arrowIcon}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.monthHeader}>{monthName}</Text>
-            <TouchableOpacity
-              style={styles.arrowButton}
-              onPress={() => {
-                setCurrentMonth((prev) => {
-                  if (prev === 11) {
-                    setCurrentYear((y) => y + 1);
-                    return 0;
-                  }
-                  return prev + 1;
-                });
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.arrowIcon}>→</Text>
-            </TouchableOpacity>
-          </View>
-          <ExpenseList
-            expenses={filteredExpenses}
-            onDeleteExpense={handleDeleteExpense}
-            onEditExpense={handleEditExpense}
-            editingExpense={editingExpense}
-          />
-          <Button
-            title={
-              showSummary ? "Hide Monthly Summary" : "Show Monthly Summary"
-            }
-            onPress={() => setShowSummary((prev) => !prev)}
-          />
-          {showSummary && (
-            <ExpenseSummary
-              expenses={filteredExpenses}
-              month={currentMonth}
-              year={currentYear}
+          <ScrollView
+            ref={scrollViewRef}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="always"
+            keyboardDismissMode="none"
+          >
+            <ExpenseForm
+              onAddExpense={handleAddExpense}
+              onUpdateExpense={handleUpdateExpense}
+              editingExpense={editingExpense}
+              onCancelEdit={handleCancelEdit}
+              categories={CATEGORIES}
+              currentMonth={currentMonth}
+              currentYear={currentYear}
             />
-          )}
-        </ScrollView>
-        <StatusBar style="auto" />
+            <View style={styles.monthHeaderRow}>
+              <TouchableOpacity
+                style={styles.arrowButton}
+                onPress={() => {
+                  setCurrentMonth((prev) => {
+                    if (prev === 0) {
+                      setCurrentYear((y) => y - 1);
+                      return 11;
+                    }
+                    return prev - 1;
+                  });
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.arrowIcon}>←</Text>
+              </TouchableOpacity>
+              <Text style={styles.monthHeader}>{monthName}</Text>
+              <TouchableOpacity
+                style={styles.arrowButton}
+                onPress={() => {
+                  setCurrentMonth((prev) => {
+                    if (prev === 11) {
+                      setCurrentYear((y) => y + 1);
+                      return 0;
+                    }
+                    return prev + 1;
+                  });
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.arrowIcon}>→</Text>
+              </TouchableOpacity>
+            </View>
+            <ExpenseList
+              expenses={filteredExpenses}
+              onDeleteExpense={handleDeleteExpense}
+              onEditExpense={handleEditExpense}
+              editingExpense={editingExpense}
+            />
+            <Button
+              title={
+                showSummary ? "Hide Monthly Summary" : "Show Monthly Summary"
+              }
+              onPress={() => setShowSummary((prev) => !prev)}
+            />
+            {showSummary && (
+              <ExpenseSummary
+                expenses={filteredExpenses}
+                month={currentMonth}
+                year={currentYear}
+              />
+            )}
+          </ScrollView>
+          <StatusBar style="auto" />
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </GestureHandlerRootView>
   );

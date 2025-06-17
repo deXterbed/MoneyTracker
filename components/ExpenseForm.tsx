@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Keyboard,
 } from "react-native";
-import { Expense, ValidationErrors, CATEGORIES } from "../types/expense";
+import { Expense, ValidationErrors } from "../types/expense";
 
 interface ExpenseFormProps {
   onAddExpense: (expense: Expense) => void;
@@ -119,6 +120,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
         });
       }
       resetForm();
+      Keyboard.dismiss();
     }
   };
 
@@ -133,7 +135,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
   };
 
   return (
-    <ScrollView ref={formRef} style={styles.container}>
+    <ScrollView
+      ref={formRef}
+      style={styles.container}
+      keyboardShouldPersistTaps="always"
+      keyboardDismissMode="none"
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Money Tracker</Text>
       </View>
@@ -153,6 +160,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             }}
             keyboardType="numeric"
             autoFocus
+            returnKeyType="done"
           />
         </View>
         {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
@@ -229,8 +237,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
               editingExpense && styles.cancelButton,
               !isAmountValid() && !editingExpense && styles.buttonDisabled,
             ]}
-            onPress={editingExpense ? resetForm : handleSubmit}
+            onPress={() => (editingExpense ? resetForm() : handleSubmit())}
             disabled={!isAmountValid() && !editingExpense}
+            activeOpacity={0.6}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={styles.buttonText}>
               {editingExpense ? "Cancel" : "Add Expense"}
@@ -241,6 +251,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({
             <TouchableOpacity
               style={[styles.button, styles.updateButton]}
               onPress={handleSubmit}
+              activeOpacity={0.6}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Text style={styles.buttonText}>Update</Text>
             </TouchableOpacity>
@@ -368,11 +380,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginHorizontal: 4,
+    minHeight: 48,
   },
   buttonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+    textAlign: "center",
   },
   buttonDisabled: {
     backgroundColor: "#b2f0d6",
